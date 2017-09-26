@@ -17,6 +17,24 @@ public class RestaurantUser implements Serializable{
     private String restaurantCode;
     private String restaurantPreferences;
     private String userId;
+    private double usageCounter;
+    private Integer browseNum;
+
+    public Integer getBrowseNum() {
+        return browseNum;
+    }
+
+    public void setBrowseNum(Integer browseNum) {
+        this.browseNum = browseNum;
+    }
+
+    public double getUsageCounter() {
+        return usageCounter;
+    }
+
+    public void setUsageCounter(double usageCounter) {
+        this.usageCounter = usageCounter;
+    }
 
     public String getId() {
         return id;

@@ -21,6 +21,7 @@ import java.util.Properties;
 /**
  * Created by yanggf on 2017/9/22.
  */
+//由于boolean类型字段默认值是false，所以最后一步更新这个字段。（其他字段一更新，该字段默认全都是false，被更新）
 public class UserMultitimeConsumption {
     public static void main(String[] args){
         SparkSession spark = ESMysqlSpark.getSession();
@@ -93,7 +94,7 @@ public class UserMultitimeConsumption {
 
             SQLContext context = new SQLContext(spark);
             Dataset ds = context.createDataFrame(restRDD, RestaurantUser.class);
-            ds.show();
+//            ds.show();
             EsSparkSQL.saveToEs(ds,"user/userRest");
 
         } catch (Exception e){

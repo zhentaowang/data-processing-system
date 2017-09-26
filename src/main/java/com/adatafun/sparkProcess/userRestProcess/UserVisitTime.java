@@ -21,15 +21,17 @@ public class UserVisitTime {
         Properties propMysql = ESMysqlSpark.getMysqlConf2();
         String table = "tbd_app_opera_path";
         Dataset orderDS = spark.read().jdbc(propMysql.getProperty("url"), table, propMysql);
-        orderDS.persist(StorageLevel.MEMORY_AND_DISK());
+        Dataset orderFilterDS = orderDS.filter("page_name = 'RestaurantDetailViewController' or page_name = 'NetworkRestaurantActivity'");
+
+        orderFilterDS.persist(StorageLevel.MEMORY_ONLY());
 
         Dataset orderDS2 = orderDS.withColumnRenamed("page_time","page_time2");
-        Dataset linkDS = orderDS.join(orderDS2,orderDS.col("page_parent_id").equalTo(orderDS2.col("id")),"left_outer");
+        Dataset linkDS = orderFilterDS.join(orderDS2,orderFilterDS.col("page_parent_id").equalTo(orderDS2.col("id")),"left_outer");
 
         List<Column> listColumns = new ArrayList<Column>();
-        listColumns.add(orderDS.col("user_id"));
-        listColumns.add(orderDS.col("page_name"));
-        listColumns.add(orderDS.col("page_time"));
+        listColumns.add(orderFilterDS.col("user_id"));
+        listColumns.add(orderFilterDS.col("page_name"));
+        listColumns.add(orderFilterDS.col("page_time"));
         listColumns.add(linkDS.col("page_time2"));
         Seq<Column> seqCol = JavaConversions.asScalaBuffer(listColumns).toSeq();
         Dataset resultDS = linkDS.select(seqCol);//裁剪后的数据
