@@ -65,6 +65,7 @@ public class UserRestaurantPrefernces {
                 public UserTags call(Tuple2<String, Tuple2<Double, Integer>> stringTuple2Tuple2) throws Exception {
                     UserTags user = new UserTags();
                     user.setId(stringTuple2Tuple2._1());
+                    user.setUserId(stringTuple2Tuple2._1());
                     if (stringTuple2Tuple2._2()._1() / stringTuple2Tuple2._2()._2() >= 0.5){
                         user.setRestaurantPreferences("中餐");
                     } else {
