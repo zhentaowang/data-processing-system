@@ -10,7 +10,7 @@ import java.util.Properties;
  */
 public class ESMysqlSpark {
     public static SparkSession getSession(){
-        SparkConf conf = new SparkConf().setAppName("testEs").setMaster("local");
+        SparkConf conf = new SparkConf().setAppName("testEs").setMaster("local[*]");
         Properties props = ApplicationProperty.getInstance().getProperty();
         conf.set("es.index.auto.create",props.getProperty("es.index.auto.create"));
         conf.set("es.resource",props.getProperty("es.resource"));

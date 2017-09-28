@@ -1,8 +1,10 @@
-package com.adatafun.sparkProcess.userRestProcess;
+package com.adatafun.sparkProcess.userLoungeProcess;
 
 import com.adatafun.sparkProcess.conf.ESMysqlSpark;
 import com.adatafun.sparkProcess.model.RestaurantUser;
-import com.adatafun.sparkProcess.model.UserTags;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
@@ -14,40 +16,41 @@ import scala.Tuple2;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
- * Created by yanggf on 2017/9/26.
+ * Created by yanggf on 2017/9/27.
  */
-public class UserUsageCounter {
+public class LoungeBrowseNum {
     public static void main(String[] args){
         SparkSession spark = ESMysqlSpark.getSession();
-        Properties propMysql = ESMysqlSpark.getMysqlConf();
+        Properties propMysql = ESMysqlSpark.getMysqlConf2();
 
         try{
-            String table = "td_restaurant_order";
-            Dataset orderDS = spark.read().jdbc(propMysql.getProperty("url"),table,propMysql);
-            Dataset tbOrderDS = spark.read().jdbc(propMysql.getProperty("url"),"tb_order",propMysql);
-
-
-            Dataset togetherDS = orderDS.join(tbOrderDS, orderDS.col("fd_code").equalTo(tbOrderDS.col("order_no")),"left_outer");
-
-            Dataset resultNull = togetherDS.filter("user_id is not null");
+            String table = "tbd_url_element";
+            Dataset urlDS = spark.read().jdbc(propMysql.getProperty("url"),table,propMysql);
+            Dataset filterDS = urlDS.filter("url = '/VirtualCard-en/lounge/detail' or url = '/VirtualCard-v5/lounge/detail' " +
+                    "or url = '/VirtualCard-v6/lounge/detail'");
 
             List<Column> listCols = new ArrayList<Column>();
-            listCols.add(togetherDS.col("user_id"));
-            listCols.add(togetherDS.col("fd_restaurant_code"));
-
+            listCols.add(filterDS.col("param"));
             Seq<Column> seqCol = JavaConversions.asScalaBuffer(listCols).toSeq();
 
-            Dataset resultDS = resultNull.select(seqCol);
-            JavaRDD<Row> rowRDD = resultDS.toJavaRDD().coalesce(10);
+            Dataset resultDS = filterDS.select(seqCol);
+            JavaRDD<Row> rowRDD = resultDS.toJavaRDD().coalesce(30);
+
             JavaPairRDD<Tuple2<String,String> , Integer> pairRDD = rowRDD.mapToPair(new PairFunction<Row, Tuple2<String, String>, Integer>() {
                 public Tuple2<Tuple2<String, String>, Integer> call(Row row) throws Exception {
-                    String userId = String.valueOf(row.getAs(0));
-                    String restaurantCode = row.getString(1);
+                    final Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+                    String jsonStr = String.valueOf(row.getAs(0));
+                    Type type = new TypeToken<Map<String, String>>(){}.getType();
+                    Map<String, String> map = gson.fromJson(jsonStr, type);
+                    String userId = map.get("userId");
+                    String restaurantCode = map.get("code");
                     Tuple2<String, String> tpl2 = new Tuple2<String, String>(userId, restaurantCode);
                     return new Tuple2<Tuple2<String, String>, Integer>(tpl2, 1);
                 }
@@ -62,7 +65,9 @@ public class UserUsageCounter {
                 public RestaurantUser call(Tuple2<Tuple2<String, String>, Integer> tuple2IntegerTuple2) throws Exception {
                     RestaurantUser user = new RestaurantUser();
                     user.setId(tuple2IntegerTuple2._1()._1() + tuple2IntegerTuple2._1()._2());
-                    user.setUsageCounter(tuple2IntegerTuple2._2() / 1.0);
+                    user.setUserId(tuple2IntegerTuple2._1()._1());
+                    user.setRestaurantCode(tuple2IntegerTuple2._1()._2());
+                    user.setBrowseNum(tuple2IntegerTuple2._2());
                     return user;
                 }
             });
@@ -70,7 +75,7 @@ public class UserUsageCounter {
 
             SQLContext sqlContext = new SQLContext(spark);
             Dataset ds = sqlContext.createDataFrame(restUserRDD, RestaurantUser.class);
-            EsSparkSQL.saveToEs(ds, "user/userRest");
+            EsSparkSQL.saveToEs(ds, "user/userLounge");
 
 
         } catch (Exception e){
