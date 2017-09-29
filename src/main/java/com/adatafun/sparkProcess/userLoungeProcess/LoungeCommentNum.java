@@ -24,13 +24,14 @@ public class LoungeCommentNum {
         SparkSession spark = ESMysqlSpark.getSession();
         Properties propMysql = ESMysqlSpark.getMysqlConf();
 
-        Dataset collectDS = spark.read().jdbc(propMysql.getProperty("url"),"customer_share",propMysql);
+        Dataset collectDS = spark.read().jdbc(propMysql.getProperty("url"),"tb_customer_share",propMysql);
+        Dataset filterDS = collectDS.filter("user_id is not null and code is not null and score is not null and score > 2");
 
-        JavaRDD<Row> collectRowRDD = collectDS.toJavaRDD();
+        JavaRDD<Row> collectRowRDD = filterDS.toJavaRDD();
         JavaPairRDD<Tuple2<String,String>, Integer> collectPairRDD = collectRowRDD.mapToPair(new PairFunction<Row, Tuple2<String, String>, Integer>() {
             public Tuple2<Tuple2<String, String>, Integer> call(Row row) throws Exception {
-                String str1 = String.valueOf(row.getAs(1));
-                String str2 = row.getString(5);
+                String str1 = String.valueOf(row.getAs(6));
+                String str2 = row.getString(17);
                 Tuple2<String, String> tpl2 = new Tuple2<String, String>(str1, str2);
                 return new Tuple2<Tuple2<String, String>, Integer>(tpl2, 1);
             }
@@ -66,8 +67,7 @@ public class LoungeCommentNum {
 
         SQLContext sqlContext = new SQLContext(spark);
         Dataset ds = sqlContext.createDataFrame(restRDD, RestaurantUser.class);
-        //System.out.println(ds.count());
-        //ds.show();
+//        ds.toJavaRDD().saveAsTextFile("f:/HAOPINGCOMMENT");
         EsSparkSQL.saveToEs(ds,"user/userLounge");
     }
 }
