@@ -19,14 +19,14 @@ public class RestaurantUser implements Serializable{
     private String userId;
     private double usageCounter;
     private Integer browseNum;
-    private Integer consumPersonNum;
+    private Integer peopleConsumption;
 
-    public Integer getConsumPersonNum() {
-        return consumPersonNum;
+    public Integer getPeopleConsumption() {
+        return peopleConsumption;
     }
 
-    public void setConsumPersonNum(Integer consumPersonNum) {
-        this.consumPersonNum = consumPersonNum;
+    public void setPeopleConsumption(Integer peopleConsumption) {
+        this.peopleConsumption = peopleConsumption;
     }
 
     public Integer getBrowseNum() {
