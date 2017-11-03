@@ -8,14 +8,60 @@
     <artifactId>sparkProcess</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <repositories>
+        <repository>
+            <id>spring-libs</id>
+            <url>http://repo.spring.io/plugins-release/</url>
+        </repository>
+        <repository>
+            <id>conjars.org</id>
+            <url>http://conjars.org/repo</url>
+        </repository>
+    </repositories>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
 
     <dependencies>
+
+        <!-- https://mvnrepository.com/artifact/org.pentaho/pentaho-aggdesigner-algorithm -->
+        <!--<dependency>-->
+            <!--<groupId>org.pentaho</groupId>-->
+            <!--<artifactId>pentaho-aggdesigner-algorithm</artifactId>-->
+            <!--<version>5.1.5-jhyde</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>cascading</groupId>-->
+            <!--<artifactId>cascading-hadoop</artifactId>-->
+            <!--<version>2.6.3</version>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>cascading</groupId>-->
+            <!--<artifactId>cascading-local</artifactId>-->
+            <!--<version>2.6.3</version>-->
+        <!--</dependency>-->
+
         <!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-hadoop -->
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch-hadoop</artifactId>
             <version>5.5.0</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.elasticsearch/elasticsearch-hadoop-cascading -->
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch-hadoop-cascading</artifactId>
+            <version>5.5.0</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -28,6 +74,8 @@
             <artifactId>transport</artifactId>
             <version>5.5.0</version>
         </dependency>
+
+
 
         <!-- https://mvnrepository.com/artifact/log4j/log4j -->
         <dependency>
@@ -73,9 +121,32 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.44</version>
         </dependency>
-
-
-
     </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>*.properties</include>
+                    <include>*.xml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+
 
 </project>
